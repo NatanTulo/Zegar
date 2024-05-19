@@ -1,30 +1,45 @@
 ﻿#include "raylib.h"
+#include <string>
+#include <cstring>
+#include <cstdlib>
 
-int main()
+int main(void)
 {
-    // Inicjalizacja
-    const int screenWidth = 800;
-    const int screenHeight = 600;
+    const int screenWidth = 1600;
+    const int screenHeight = 900;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    InitWindow(screenWidth, screenHeight, "Zegar");
+    InitAudioDevice();
+    SetTargetFPS(60);
 
-    SetTargetFPS(60); // Ustawienie, aby gra działała w 60 klatkach na sekundę
+    Sound tick = LoadSound("assets/clock.wav");
+    double tickTime = 0;
+	double time = 0;
 
-    // Główna pętla gry
-    while (!WindowShouldClose()) // Wykrywanie zamknięcia okna lub naciśnięcia klawisza ESC
+    while (!WindowShouldClose())
     {
-        // Rozpoczęcie rysowania
-        BeginDrawing();
+        if (GetTime() - tickTime >= 1) {
+			tickTime = GetTime();
+            PlaySound(tick);
+        }
 
+        time = GetTime();
+        std::string temp = "Aktualny czas: " + std::to_string(time);
+        char* timeStr= (char*)malloc(temp.length() + 16);
+        if (timeStr!= nullptr) strcpy(timeStr, temp.c_str());
+
+        BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        DrawText("Gratulacje! Utworzyłeś swoje pierwsze okno!", 190, 200, 20, LIGHTGRAY);
-
+        DrawText(timeStr, 20, 20, 20, LIGHTGRAY);
+        free(timeStr);
         EndDrawing();
     }
 
-    // De-inicjalizacja
-    CloseWindow(); // Zamknięcie okna i kontekstu OpenGL
+	// Deinicjalizacja
+    UnloadSound(tick);
+    CloseAudioDevice();
+    CloseWindow();
 
     return 0;
 }

@@ -19,4 +19,9 @@
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="assets\clock.wav">
+      <Filter>Pliki zasobów</Filter>
+    </Media>
+  </ItemGroup>
 </Project>
