@@ -24,4 +24,29 @@
       <Filter>Pliki zasobów</Filter>
     </Media>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\lighting.fs">
+      <Filter>Pliki zasobów</Filter>
+    </None>
+    <None Include="assets\lighting.vs">
+      <Filter>Pliki zasobów</Filter>
+    </None>
+    <None Include="assets\wahadlo.mtl">
+      <Filter>Pliki zasobów</Filter>
+    </None>
+    <None Include="assets\wskazGodzin.mtl">
+      <Filter>Pliki zasobów</Filter>
+    </None>
+    <None Include="assets\wskazMin.mtl">
+      <Filter>Pliki zasobów</Filter>
+    </None>
+    <None Include="assets\zegar.mtl">
+      <Filter>Pliki zasobów</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\plasma.png">
+      <Filter>Pliki zasobów</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

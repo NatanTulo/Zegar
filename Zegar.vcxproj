@@ -144,6 +144,17 @@
   <ItemGroup>
     <Media Include="assets\clock.wav" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\lighting.fs" />
+    <None Include="assets\lighting.vs" />
+    <None Include="assets\wahadlo.mtl" />
+    <None Include="assets\wskazGodzin.mtl" />
+    <None Include="assets\wskazMin.mtl" />
+    <None Include="assets\zegar.mtl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\plasma.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -67,6 +67,7 @@ int main(void)
 	Object wahadlo = Object(LoadModel("assets/wahadlo.obj"), { 0.0f, 2.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -90, shader);
 	Object wskazMin = Object(LoadModel("assets/wskazMin.obj"), { -0.2f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -90, shader);
 	Object wskazGodzin = Object(LoadModel("assets/wskazGodzin.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -90, shader);
+	Object podloga = Object(LoadModel("assets/podloga.obj"), { 0.0f, -1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, 90, shader);
 
 	int ambientLoc = GetShaderLocation(shader, "ambient");
 	float val_t[]{ 0.1f, 0.1f, 0.1f, 1.0f };
@@ -112,6 +113,7 @@ int main(void)
 		wahadlo.draw();
 		wskazMin.draw();
 		wskazGodzin.draw();
+		podloga.draw();
 
 		// Draw spheres to show where the lights are
 		for (int i = 0; i < MAX_LIGHTS; i++)
@@ -120,7 +122,6 @@ int main(void)
 			else DrawSphereWires(lights[i].position, 0.2f, 8, 8, ColorAlpha(lights[i].color, 0.3f));
 		}
 
-		DrawGrid(10, 1.0f);
 		EndMode3D();
 
 		DrawFPS(10, 10);
