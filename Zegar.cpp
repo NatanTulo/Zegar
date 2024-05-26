@@ -73,8 +73,8 @@ int main(void)
 	InitAudioDevice();
 
 	Sound tick = LoadSound("assets/clock.wav");
-	double tickTime = 0;
-	double time = 0;
+	float tickTime = 0;
+	float time = 0;
 	double multiplier = 1;
 
 	Camera camera = { 0 };
@@ -107,12 +107,12 @@ int main(void)
 
 	while (!WindowShouldClose())
 	{
-		if (GetTime() - tickTime >= 1/multiplier) {
-			tickTime = GetTime();
+		if (time - tickTime >= 1/multiplier) {
+			tickTime = time;
 			PlaySound(tick);
 		}
 
-		time = GetTime();
+		time += GetFrameTime()*multiplier;
 		std::string temp = "Aktualny czas: " + std::to_string(time);
 		char* timeStr = (char*)malloc(temp.length() + 16);
 		if (timeStr != nullptr) strcpy(timeStr, temp.c_str());
@@ -128,7 +128,7 @@ int main(void)
 		if (IsKeyPressed(KEY_G)) { lights[2].enabled = !lights[2].enabled; }
 		if (IsKeyPressed(KEY_B)) { lights[3].enabled = !lights[3].enabled; }
 		if (IsKeyPressed(KEY_I)) { multiplier += 1.0f; }
-		if (IsKeyPressed(KEY_K)) { multiplier += 1.0f; }
+		if (IsKeyPressed(KEY_K)) { multiplier -= 1.0f; }
 		std::cout << multiplier << std::endl;
 		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
 
