@@ -2,6 +2,7 @@
 #include <string>
 #include <cstring>
 #include <cstdlib>
+#include <ctime>
 #include "raylib.h"
 #include "raylib.h"
 #define RLIGHTS_IMPLEMENTATION
@@ -58,8 +59,8 @@ public:
 	void drawM() {
 		DrawModelEx(model, position, rotation, rotationAngle, scale, color);
 	}
-	void update(double time) {
-		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(PI*time/30) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
+	void update(double time, float localTime, float divider) {
+		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(PI * localTime / 30 / divider) * MatrixRotateX(PI * time / 30 / divider) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
 	}
 };
 
@@ -67,6 +68,10 @@ int main(void)
 {
 	const int screenWidth = 1600;
 	const int screenHeight = 900;
+
+	time_t now = time(0);
+	tm* localtm = localtime(&now);
+	float localTime = localtm->tm_hour * 3600 + localtm->tm_min * 60 + localtm->tm_sec;
 
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	InitWindow(screenWidth, screenHeight, "Zegar");
@@ -120,15 +125,17 @@ int main(void)
 		UpdateCamera(&camera, CAMERA_THIRD_PERSON);
 		float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
 		SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
-		wskazMin.update(time);
-		wskazGodzin.update(time/60);
+		wskazMin.update(time, localTime, 1);
+		wskazGodzin.update(time, localTime, 60);
 
+		double lastMultiplier = multiplier;
 		if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
 		if (IsKeyPressed(KEY_R)) { lights[1].enabled = !lights[1].enabled; }
 		if (IsKeyPressed(KEY_G)) { lights[2].enabled = !lights[2].enabled; }
 		if (IsKeyPressed(KEY_B)) { lights[3].enabled = !lights[3].enabled; }
 		if (IsKeyPressed(KEY_I)) { multiplier += 1.0f; }
 		if (IsKeyPressed(KEY_K)) { multiplier -= 1.0f; }
+		if (lastMultiplier != multiplier)
 		std::cout << multiplier << std::endl;
 		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
 
