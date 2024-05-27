@@ -167,6 +167,13 @@ int main(void)
 		if (IsKeyPressed(KEY_K)) { multiplier -= 1.0f; }
 		if (IsKeyPressed(KEY_O)) { zegar.changeColor(); }
 		if (IsKeyPressed(KEY_P)) { podloga.changeColor(); }
+		if (IsKeyPressed(KEY_C)) {
+			camera.position = { -10.0f, 10.0f, 10.0f };
+			camera.target = { 0.0f, 3.7f, 0.0f };
+			camera.up = { 0.0f, 1.0f, 0.0f };
+			camera.fovy = 45.0f;
+			camera.projection = CAMERA_PERSPECTIVE;
+		}
 		if (lastMultiplier != multiplier)
 		std::cout << multiplier << std::endl;
 		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
