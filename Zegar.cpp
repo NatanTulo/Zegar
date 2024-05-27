@@ -62,6 +62,34 @@ public:
 	void update(double time, float localTime, float divider) {
 		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(PI * localTime / 30 / divider) * MatrixRotateX(PI * time / 30 / divider) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
 	}
+	void changeColor() {
+		static int number = 0;
+		switch (number) {
+		case 0: this->color = LIGHTGRAY; break;
+		case 1: this->color = GRAY; break;
+		case 2: this->color = DARKGRAY; break;
+		case 3: this->color = YELLOW; break;
+		case 4: this->color = GOLD; break;
+		case 5: this->color = ORANGE; break;
+		case 6: this->color = PINK; break;
+		case 7: this->color = RED; break;
+		case 8: this->color = MAROON; break;
+		case 9: this->color = GREEN; break;
+		case 10: this->color = LIME; break;
+		case 11: this->color = DARKGREEN; break;
+		case 12: this->color = SKYBLUE; break;
+		case 13: this->color = BLUE; break;
+		case 14: this->color = DARKBLUE; break;
+		case 15: this->color = PURPLE; break;
+		case 16: this->color = VIOLET; break;
+		case 17: this->color = DARKPURPLE; break;
+		case 18: this->color = BEIGE; break;
+		case 19: this->color = BROWN; break;
+		case 20: this->color = DARKBROWN; break;
+		case 21: this->color = WHITE; number = -1; break;
+		}
+		++number;
+	}
 };
 
 int main(void)
@@ -92,8 +120,9 @@ int main(void)
 	Shader shader = LoadShader(TextFormat("assets/lighting.vs", GLSL_VERSION),
 		TextFormat("assets/lighting.fs", GLSL_VERSION));
 
-	Object zegar = Object(LoadModel("assets/zegar.obj"), { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -90, shader);
+	Object zegar = Object(LoadModel("assets/zegar.obj"), { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -90, shader);
 	Object wahadlo = Object(LoadModel("assets/wahadlo.obj"), { 0.0f, 2.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
+	Object wskazSek = Object(LoadModel("assets/wskazSek.obj"), { -0.22f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
 	Object wskazMin = Object(LoadModel("assets/wskazMin.obj"), { -0.2f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
 	Object wskazGodzin = Object(LoadModel("assets/wskazGodzin.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
 	Object podloga = Object(LoadModel("assets/podloga.obj"), { 0.0f, -1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, 90, shader);
@@ -125,8 +154,9 @@ int main(void)
 		UpdateCamera(&camera, CAMERA_THIRD_PERSON);
 		float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
 		SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
-		wskazMin.update(time, localTime, 1);
-		wskazGodzin.update(time, localTime, 60);
+		wskazSek.update(int(time), localTime, 1);
+		wskazMin.update(time, localTime, 60);
+		wskazGodzin.update(time, localTime, 3600);
 
 		double lastMultiplier = multiplier;
 		if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
@@ -135,17 +165,20 @@ int main(void)
 		if (IsKeyPressed(KEY_B)) { lights[3].enabled = !lights[3].enabled; }
 		if (IsKeyPressed(KEY_I)) { multiplier += 1.0f; }
 		if (IsKeyPressed(KEY_K)) { multiplier -= 1.0f; }
+		if (IsKeyPressed(KEY_O)) { zegar.changeColor(); }
+		if (IsKeyPressed(KEY_P)) { podloga.changeColor(); }
 		if (lastMultiplier != multiplier)
 		std::cout << multiplier << std::endl;
 		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
 
 		BeginDrawing();
-		ClearBackground(RAYWHITE);
+		ClearBackground(SKYBLUE);
 
 		BeginMode3D(camera);
 
 		zegar.drawM();
 		wahadlo.draw();
+		wskazSek.draw();
 		wskazMin.draw();
 		wskazGodzin.draw();
 		podloga.drawM();
