@@ -147,16 +147,14 @@ int main(void)
 		}
 
 		time += GetFrameTime()*multiplier;
-		std::string temp = "Aktualny czas: " + std::to_string(time);
-		char* timeStr = (char*)malloc(temp.length() + 16);
-		if (timeStr != nullptr) strcpy(timeStr, temp.c_str());
+		std::string temp = "Czas od startu programu: " + std::to_string(time);
 
 		UpdateCamera(&camera, CAMERA_THIRD_PERSON);
 		float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
 		SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
 		wskazSek.update(int(time), localTime, 1);
 		wskazMin.update(time, localTime, 60);
-		wskazGodzin.update(time, localTime, 3600);
+		wskazGodzin.update(time, localTime, 1440);
 
 		double lastMultiplier = multiplier;
 		if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
@@ -200,8 +198,7 @@ int main(void)
 		EndMode3D();
 
 		DrawFPS(10, 10);
-		DrawText(timeStr, screenWidth - 210, screenHeight - 20, 20, LIGHTGRAY);
-		free(timeStr);
+		DrawText(temp.c_str(), 10, screenHeight - 20, 20, LIGHTGRAY);
 		EndDrawing();
 	}
 
