@@ -1,9 +1,6 @@
 ﻿#include <iostream>
 #include <string>
-#include <cstring>
-#include <cstdlib>
 #include <ctime>
-#include "raylib.h"
 #include "raylib.h"
 #define RLIGHTS_IMPLEMENTATION
 #include "rlights.h"
