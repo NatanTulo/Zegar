@@ -154,7 +154,7 @@ int main(void)
 		SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
 		wskazSek.update(int(time), localTime, 1);
 		wskazMin.update(time, localTime, 60);
-		wskazGodzin.update(time, localTime, 1440);
+		wskazGodzin.update(time, localTime, 720);
 
 		double lastMultiplier = multiplier;
 		if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
