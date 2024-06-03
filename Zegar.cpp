@@ -123,6 +123,13 @@ int main(void)
 	Object wskazMin = Object(LoadModel("assets/wskazMin.obj"), { -0.2f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
 	Object wskazGodzin = Object(LoadModel("assets/wskazGodzin.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
 	Object podloga = Object(LoadModel("assets/podloga.obj"), { 0.0f, -1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, 90, shader);
+	Object zebatka1 = Object(LoadModel("assets/zebatka_12.obj"), { 0.2f, 3.97f, -0.81f }, { 0.0f, 1.0f, 0.0f }, { 0.02f, 0.02f, 0.02f }, SKYBLUE, -90, shader);
+	Object zebatka2 = Object(LoadModel("assets/zebatki_48_8.obj"), { 0.15f, 3.97f, -0.43f }, { 0.0f, 1.0f, 0.0f }, { 0.02f, 0.02f, 0.02f }, WHITE, -90, shader);
+	Object zebatka3 = Object(LoadModel("assets/zebatki_60_8.obj"), { 0.1f, 3.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.02f, 0.02f, 0.02f }, SKYBLUE, -90, shader);
+	Object zebatka4 = Object(LoadModel("assets/zebatki_64_8.obj"), { 0.06f, 3.97f, 0.446f }, { 0.0f, 1.0f, 0.0f }, { 0.02f, 0.02f, 0.02f }, WHITE, -90, shader);
+	Object zebatka5 = Object(LoadModel("assets/zebatki_60_15.obj"), { 0.02f, 3.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.02f, 0.02f, 0.02f }, SKYBLUE, -90, shader);
+	Object zebatka6 = Object(LoadModel("assets/zebatki_45_10.obj"), { -0.02f, 3.97f, 0.38f }, { 0.0f, 1.0f, 0.0f }, { 0.02f, 0.02f, 0.02f }, WHITE, -90, shader);
+	Object zebatka7 = Object(LoadModel("assets/zebatka_40_1.obj"), { -0.08f, 3.97f, 0.0f }, { 0.0f, 0.1f, 0.0f }, { 0.025f, 0.025f, 0.025f }, SKYBLUE, -90, shader);
 
 	int ambientLoc = GetShaderLocation(shader, "ambient");
 	float val_t[]{ 0.1f, 0.1f, 0.1f, 1.0f };
@@ -184,6 +191,14 @@ int main(void)
 		wskazMin.draw();
 		wskazGodzin.draw();
 		podloga.drawM();
+		zebatka1.drawM();
+		zebatka2.drawM();
+		zebatka3.drawM();
+		zebatka4.drawM();
+		zebatka5.drawM();
+		zebatka6.drawM();
+		zebatka7.drawM();
+
 
 		// Draw spheres to show where the lights are
 		for (int i = 0; i < MAX_LIGHTS; i++)
@@ -198,6 +213,7 @@ int main(void)
 		DrawText(temp.c_str(), 10, screenHeight - 20, 20, LIGHTGRAY);
 		EndDrawing();
 	}
+
 
 	// Deinicjalizacja
 	UnloadSound(tick);
