@@ -123,18 +123,20 @@ int main(void)
 	Object wskazMin = Object(LoadModel("assets/wskazMin.obj"), { -0.2f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
 	Object wskazGodzin = Object(LoadModel("assets/wskazGodzin.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
 	Object podloga = Object(LoadModel("assets/podloga.obj"), { 0.0f, -1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, 90, shader);
-	Object zebatka_12 = Object(LoadModel("assets/zebatka_12_2.obj"), { 0.2f, 3.97f, -0.81f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader);
-	Object zebatka_48 = Object(LoadModel("assets/zebatka_48.obj"), { 0.15f, 3.97f, -0.43f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
-	Object zebatka_8_0 = Object(LoadModel("assets/zebatka_8.obj"), { 0.15f, 3.97f, -0.43f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
-	Object zebatka_60_0 = Object(LoadModel("assets/zebatka_60.obj"), { 0.1f, 3.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader);
-	Object zebatka_8_1 = Object(LoadModel("assets/zebatka_8.obj"), { 0.1f, 3.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader);
-	Object zebatka_64 = Object(LoadModel("assets/zebatka_64.obj"), { 0.06f, 3.97f, 0.446f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
-	Object zebatka_8_2 = Object(LoadModel("assets/zebatka_8.obj"), { 0.06f, 3.97f, 0.446f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
-	Object zebatka_60_1 = Object(LoadModel("assets/zebatka_60.obj"), { 0.02f, 3.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader);
-	Object zebatka_15 = Object(LoadModel("assets/zebatka_15.obj"), { 0.02f, 3.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader);
-	Object zebatka_45 = Object(LoadModel("assets/zebatka_45.obj"), { -0.02f, 3.97f, 0.38f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
-	Object zebatka_10 = Object(LoadModel("assets/zebatka_10.obj"), { -0.02f, 3.97f, 0.38f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
-	Object zebatka_40 = Object(LoadModel("assets/zebatka_40_2.obj"), { -0.08f, 3.97f, 0.0f }, { 0.0f, 0.1f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader);
+	Object zebatka[] = {
+		Object(LoadModel("assets/zebatka_12_3.obj"), { 0.2f, 3.97f, -0.81f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_48.obj"), { 0.15f, 3.97f, -0.43f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_8.obj"), { 0.15f, 3.97f, -0.43f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_60.obj"), { 0.1f, 3.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_8.obj"), { 0.1f, 3.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_64.obj"), { 0.06f, 3.97f, 0.446f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_8.obj"), { 0.06f, 3.97f, 0.446f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_60.obj"), { 0.02f, 3.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_15.obj"), { 0.02f, 3.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_45.obj"), { -0.02f, 3.97f, 0.38f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_10.obj"), { -0.02f, 3.97f, 0.38f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader),
+		Object(LoadModel("assets/zebatka_40_2.obj"), { -0.08f, 3.97f, 0.0f }, { 0.0f, 0.1f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader),
+	};
 
 	int ambientLoc = GetShaderLocation(shader, "ambient");
 	float val_t[]{ 0.1f, 0.1f, 0.1f, 1.0f };
@@ -164,6 +166,9 @@ int main(void)
 		wskazSek.update(int(time), localTime, 1);
 		wskazMin.update(time, localTime, 60);
 		wskazGodzin.update(time, localTime, 720);
+
+		for (int i = 0; i < sizeof(zebatka) / sizeof(Object); ++i) zebatka[i].update(time, localTime, 1);
+		wahadlo.update(time, localTime, 0.1);
 
 		double lastMultiplier = multiplier;
 		if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
@@ -196,18 +201,7 @@ int main(void)
 		wskazMin.draw();
 		wskazGodzin.draw();
 		podloga.drawM();
-		zebatka_8_0.draw();
-		zebatka_8_1.draw();
-		zebatka_8_2.draw();
-		zebatka_15.draw();
-		zebatka_12.draw();
-		zebatka_10.draw();
-		zebatka_48.draw();
-		zebatka_60_0.draw();
-		zebatka_60_1.draw();
-		zebatka_64.draw();
-		zebatka_45.draw();
-		zebatka_40.draw();
+		for (int i = 0; i < sizeof(zebatka)/sizeof(Object);++i) zebatka[i].draw();
 
 		// Draw spheres to show where the lights are
 		for (int i = 0; i < MAX_LIGHTS; i++)
