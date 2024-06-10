@@ -52,6 +52,9 @@ public:
 		this->transform = MatrixRotate(rotation, rotationAngle) * MatrixTranslate(position.x, position.y, position.z);
 		this->isVisible = true;
 	}
+	~Object() {
+		UnloadModel(model);
+	}
 	void draw() {
 		DrawMesh(model.meshes[0], model.materials[0], transform);
 	}
@@ -124,6 +127,14 @@ int main(void)
 	camera.up = { 0.0f, 1.0f, 0.0f };
 	camera.fovy = 45.0f;
 	camera.projection = CAMERA_PERSPECTIVE;
+	CameraMode cameraMode = CAMERA_CUSTOM;
+
+
+	float rotationAngleX = 0.0f;
+	float rotationAngleY = 0.0f;
+	float distanceFromTarget = 10.0f;
+	Vector3 targetPoint = { 0.0f, 3.7f, 0.0f }; // Punkt, wokół którego kamera się obraca
+
 
 	Shader shader = LoadShader(TextFormat("assets/lighting.vs", GLSL_VERSION),
 		TextFormat("assets/lighting.fs", GLSL_VERSION));
@@ -148,6 +159,7 @@ int main(void)
 		Object(LoadModel("assets/zebatka_10.obj"), { -0.02f, 3.97f, 0.38f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader),
 		Object(LoadModel("assets/zebatka_40_2.obj"), { -0.08f, 3.97f, 0.0f }, { 0.0f, 0.1f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader),
 	};
+	Object kaczka = Object(LoadModel("assets/Duck.glb"), { 0.05f, 4.45f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.002f, 0.002f, 0.002f }, WHITE, 180, shader);
 
 	int ambientLoc = GetShaderLocation(shader, "ambient");
 	float val_t[]{ 0.1f, 0.1f, 0.1f, 1.0f };
@@ -162,16 +174,33 @@ int main(void)
 	SetTargetFPS(360);
 
 	while (!WindowShouldClose())
-	{
+	{		
+		Vector2 mouseDelta = GetMouseDelta();
+		rotationAngleX -= mouseDelta.x * 0.003f;
+		if (camera.position.y > 0.2f) rotationAngleY += mouseDelta.y * 0.003f;
+		if (rotationAngleY > PI / 2) rotationAngleY = PI / 2;
+		if (rotationAngleY < -PI / 2) rotationAngleY = -PI / 2;
+		camera.position.x = targetPoint.x + distanceFromTarget * cos(rotationAngleY) * sin(rotationAngleX);
+		camera.position.z = targetPoint.z + distanceFromTarget * cos(rotationAngleY) * cos(rotationAngleX);
+		camera.position.y = targetPoint.y + distanceFromTarget * sin(rotationAngleY);
+		camera.target = targetPoint;
+
 		if (time - tickTime >= 1 / multiplier) {
 			tickTime = time;
 			PlaySound(tick);
 		}
 
 		time += GetFrameTime() * multiplier;
-		std::string temp = "Czas od startu programu: " + std::to_string(time);
 
-		UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+		int hours = int(fmod(time + localTime, 86400)) / 3600;
+		std::string hoursS = hours < 10 ? '0'+std::to_string(hours) : std::to_string(hours);
+		int minutes = int(fmod(time + localTime, 86400) / 60 - 60 * hours);
+		std::string minutesS = minutes < 10 ? '0' + std::to_string(minutes) : std::to_string(minutes);
+		int seconds = int(time + localTime - (hours * 3600) - (minutes * 60));
+		std::string secondsS = seconds < 10 ? '0' + std::to_string(seconds) : std::to_string(seconds);
+
+		std::string napis1 = "Czas cyfrowy: " + hoursS + ":" + minutesS + ":" + secondsS;
+
 		float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
 		SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
 		wskazSek.update(int(time) + localTime, 1);
@@ -192,6 +221,10 @@ int main(void)
 		zebatka[11].update(time + localTime, 43200);
 		wahadlo.wahadloUpdate(time + localTime);
 
+		if (GetMouseWheelMove() > 0) distanceFromTarget -= 0.5f;
+		if (GetMouseWheelMove() < 0) distanceFromTarget += 0.5f;
+		if (IsKeyDown(KEY_W)) targetPoint.y += 0.01f;
+		if (IsKeyDown(KEY_S)) if (camera.position.y > 0.2f)targetPoint.y -= 0.01f;
 		if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
 		if (IsKeyPressed(KEY_R)) { lights[1].enabled = !lights[1].enabled; }
 		if (IsKeyPressed(KEY_G)) { lights[2].enabled = !lights[2].enabled; }
@@ -208,11 +241,10 @@ int main(void)
 		if (IsKeyPressed(KEY_O)) { zegar.changeColor(); }
 		if (IsKeyPressed(KEY_P)) { podloga.changeColor(); }
 		if (IsKeyPressed(KEY_C)) {
-			camera.position = { -10.0f, 10.0f, 10.0f };
-			camera.target = { 0.0f, 3.7f, 0.0f };
-			camera.up = { 0.0f, 1.0f, 0.0f };
-			camera.fovy = 45.0f;
-			camera.projection = CAMERA_PERSPECTIVE;
+			rotationAngleX = -PI/4;
+			rotationAngleY = PI/8;
+			distanceFromTarget = 10.0f;
+			targetPoint = { 0.0f, 3.7f, 0.0f };
 		}
 		if (IsKeyPressed(KEY_T)) {
 			now = std::time(0);
@@ -238,6 +270,7 @@ int main(void)
 		wskazMin.draw();
 		wskazGodzin.draw();
 		podloga.drawM();
+		kaczka.drawM();
 		for (int i = 0; i < widoczneZebatki; ++i) zebatka[11 - i].draw();
 
 		// Draw spheres to show where the lights are
@@ -250,13 +283,12 @@ int main(void)
 		EndMode3D();
 
 		DrawFPS(10, 10);
-		DrawText(temp.c_str(), 10, screenHeight - 20, 20, LIGHTGRAY);
+		DrawText(napis1.c_str(), 10, screenHeight - 20, 20, MAGENTA);
 		EndDrawing();
 	}
 
-
-	// Deinicjalizacja
 	UnloadSound(tick);
+	UnloadShader(shader);
 	CloseAudioDevice();
 	CloseWindow();
 
