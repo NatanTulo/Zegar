@@ -37,6 +37,7 @@ class Object {
 	Vector3 scale;
 	Color color;
 	float rotationAngle;
+	bool isVisible;
 public:
 	Object(Model model, Vector3 position, Vector3 rotation, Vector3 scale, Color color, float rotationAngle, Shader shader) {
 		this->model = model;
@@ -49,6 +50,7 @@ public:
 		this->model.materials[0].shader = shader;
 		//model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
 		this->transform = MatrixRotate(rotation, rotationAngle) * MatrixTranslate(position.x, position.y, position.z);
+		this->isVisible = true;
 	}
 	void draw() {
 		DrawMesh(model.meshes[0], model.materials[0], transform);
@@ -60,19 +62,12 @@ public:
 		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(PI * time / 30 / divider) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
 	}
 	void wahadloUpdate(double time) {
-		float theta0 = 0.25f; // Maksymalne wychylenie w radianach
-		float g = 9.81f;     // Przyspieszenie ziemskie w m/s^2
-		float L = 1.0f;      // Długość wahadła w metrach
+		const float theta0 = 0.25f; // Maksymalne wychylenie w radianach
+		const float g = 9.81f;     // Przyspieszenie ziemskie w m/s^2
+		const float L = 1.0f;      // Długość wahadła w metrach
 
 		float angle = theta0 * sin(sqrt(g / L) * time);
-		float cosAngle = cos(angle);
-		float sinAngle = sin(angle);
-
-		this->transform.m0 = 1;         this->transform.m4 = 0;         this->transform.m8 = 0;         this->transform.m12 = 0;
-		this->transform.m1 = 0;         this->transform.m5 = cosAngle;  this->transform.m9 = -sinAngle; this->transform.m13 = 0;
-		this->transform.m2 = 0;         this->transform.m6 = sinAngle;  this->transform.m10 = cosAngle; this->transform.m14 = 0;
-		this->transform.m3 = 0;         this->transform.m7 = 0;         this->transform.m11 = 0;        this->transform.m15 = 1;
-		this->transform = MatrixRotate(this->rotation, this->rotationAngle)*this->transform * MatrixTranslate(this->position.x, this->position.y, this->position.z);
+		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(angle) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
 	}
 	void changeColor() {
 		static int number = 0;
@@ -121,6 +116,7 @@ int main(void)
 	float tickTime = 0;
 	float time = 0;
 	double multiplier = 1;
+	int widoczneZebatki = 11;
 
 	Camera camera = { 0 };
 	camera.position = { -10.0f, 10.0f, 10.0f };
@@ -133,12 +129,12 @@ int main(void)
 		TextFormat("assets/lighting.fs", GLSL_VERSION));
 
 	Object zegar = Object(LoadModel("assets/zegar.obj"), { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -90, shader);
-	Object wahadlo = Object(LoadModel("assets/wahadlo.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
+	Object wahadlo = Object(LoadModel("assets/wahadlo.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
 	Object wskazSek = Object(LoadModel("assets/wskazSek.obj"), { -0.22f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
-	Object wskazMin = Object(LoadModel("assets/wskazMin.obj"), { -0.2f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
-	Object wskazGodzin = Object(LoadModel("assets/wskazGodzin.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
+	Object wskazMin = Object(LoadModel("assets/wskazMin.obj"), { -0.2f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
+	Object wskazGodzin = Object(LoadModel("assets/wskazGodzin.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
 	Object podloga = Object(LoadModel("assets/podloga.obj"), { 0.0f, -1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, 90, shader);
-	Object zebatka[] = {
+	Object zebatka[12] = {
 		Object(LoadModel("assets/zebatka_12_3.obj"), { 0.2f, 3.97f, -0.81f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -PI / 2, shader),
 		Object(LoadModel("assets/zebatka_48.obj"), { 0.15f, 3.97f, -0.43f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader),
 		Object(LoadModel("assets/zebatka_8.obj"), { 0.15f, 3.97f, -0.43f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader),
@@ -167,12 +163,12 @@ int main(void)
 
 	while (!WindowShouldClose())
 	{
-		if (time - tickTime >= 1/multiplier) {
+		if (time - tickTime >= 1 / multiplier) {
 			tickTime = time;
 			PlaySound(tick);
 		}
 
-		time += GetFrameTime()*multiplier;
+		time += GetFrameTime() * multiplier;
 		std::string temp = "Czas od startu programu: " + std::to_string(time);
 
 		UpdateCamera(&camera, CAMERA_THIRD_PERSON);
@@ -182,15 +178,32 @@ int main(void)
 		wskazMin.update(time + localTime, 60);
 		wskazGodzin.update(time + localTime, 720);
 
-		for (int i = 0; i < sizeof(zebatka) / sizeof(Object); ++i) zebatka[i].update(time + localTime, 1);
+		zebatka[0].update(time + localTime, 1 / 6);
+		zebatka[1].update(time + localTime, -8);
+		zebatka[2].update(time + localTime, -1);
+		zebatka[3].update(time + localTime, 60);
+		zebatka[4].update(time + localTime, 7.5f);
+		zebatka[5].update(time + localTime, -480);
+		zebatka[6].update(time + localTime, -60);
+		zebatka[7].update(time + localTime, 3600);
+		zebatka[8].update(time + localTime, 240);
+		zebatka[9].update(time + localTime, 10800);
+		zebatka[10].update(time + localTime, -1080);
+		zebatka[11].update(time + localTime, 43200);
 		wahadlo.wahadloUpdate(time + localTime);
 
-		double lastMultiplier = multiplier;
 		if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
 		if (IsKeyPressed(KEY_R)) { lights[1].enabled = !lights[1].enabled; }
 		if (IsKeyPressed(KEY_G)) { lights[2].enabled = !lights[2].enabled; }
 		if (IsKeyPressed(KEY_B)) { lights[3].enabled = !lights[3].enabled; }
-		if (IsKeyPressed(KEY_I)) { multiplier += 1.0f; }
+		if (IsKeyDown(KEY_I)) {
+			multiplier += 50.0f;
+			std::cout << multiplier << std::endl;
+		}
+		if (IsKeyDown(KEY_K)) {
+			multiplier -= 50.0f;
+			std::cout << multiplier << std::endl;
+		}
 		if (IsKeyPressed(KEY_K)) { multiplier -= 1.0f; }
 		if (IsKeyPressed(KEY_O)) { zegar.changeColor(); }
 		if (IsKeyPressed(KEY_P)) { podloga.changeColor(); }
@@ -201,8 +214,17 @@ int main(void)
 			camera.fovy = 45.0f;
 			camera.projection = CAMERA_PERSPECTIVE;
 		}
-		if (lastMultiplier != multiplier)
-		std::cout << multiplier << std::endl;
+		if (IsKeyPressed(KEY_T)) {
+			now = std::time(0);
+			localtm = localtime(&now);
+			localTime = localtm->tm_hour * 3600 + localtm->tm_min * 60 + localtm->tm_sec;
+			time = 0;
+			tickTime = 0;
+			multiplier = 1;
+			std::cout << multiplier << std::endl;
+		}
+		if (IsKeyPressed(KEY_EQUAL)) { if (widoczneZebatki < 11) ++widoczneZebatki; }
+		if (IsKeyPressed(KEY_MINUS)) { if (widoczneZebatki > 0) --widoczneZebatki; }
 		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
 
 		BeginDrawing();
@@ -216,7 +238,7 @@ int main(void)
 		wskazMin.draw();
 		wskazGodzin.draw();
 		podloga.drawM();
-		for (int i = 0; i < sizeof(zebatka)/sizeof(Object);++i) zebatka[i].draw();
+		for (int i = 0; i < widoczneZebatki; ++i) zebatka[11 - i].draw();
 
 		// Draw spheres to show where the lights are
 		for (int i = 0; i < MAX_LIGHTS; i++)
