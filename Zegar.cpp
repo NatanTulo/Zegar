@@ -8,23 +8,7 @@
 #define GLSL_VERSION            330
 
 Matrix operator*(const Matrix& a, const Matrix& b) {
-	Matrix result = {};
-	result.m0 = a.m0 * b.m0 + a.m1 * b.m4 + a.m2 * b.m8 + a.m3 * b.m12;
-	result.m1 = a.m0 * b.m1 + a.m1 * b.m5 + a.m2 * b.m9 + a.m3 * b.m13;
-	result.m2 = a.m0 * b.m2 + a.m1 * b.m6 + a.m2 * b.m10 + a.m3 * b.m14;
-	result.m3 = a.m0 * b.m3 + a.m1 * b.m7 + a.m2 * b.m11 + a.m3 * b.m15;
-	result.m4 = a.m4 * b.m0 + a.m5 * b.m4 + a.m6 * b.m8 + a.m7 * b.m12;
-	result.m5 = a.m4 * b.m1 + a.m5 * b.m5 + a.m6 * b.m9 + a.m7 * b.m13;
-	result.m6 = a.m4 * b.m2 + a.m5 * b.m6 + a.m6 * b.m10 + a.m7 * b.m14;
-	result.m7 = a.m4 * b.m3 + a.m5 * b.m7 + a.m6 * b.m11 + a.m7 * b.m15;
-	result.m8 = a.m8 * b.m0 + a.m9 * b.m4 + a.m10 * b.m8 + a.m11 * b.m12;
-	result.m9 = a.m8 * b.m1 + a.m9 * b.m5 + a.m10 * b.m9 + a.m11 * b.m13;
-	result.m10 = a.m8 * b.m2 + a.m9 * b.m6 + a.m10 * b.m10 + a.m11 * b.m14;
-	result.m11 = a.m8 * b.m3 + a.m9 * b.m7 + a.m10 * b.m11 + a.m11 * b.m15;
-	result.m12 = a.m12 * b.m0 + a.m13 * b.m4 + a.m14 * b.m8 + a.m15 * b.m12;
-	result.m13 = a.m12 * b.m1 + a.m13 * b.m5 + a.m14 * b.m9 + a.m15 * b.m13;
-	result.m14 = a.m12 * b.m2 + a.m13 * b.m6 + a.m14 * b.m10 + a.m15 * b.m14;
-	result.m15 = a.m12 * b.m3 + a.m13 * b.m7 + a.m14 * b.m11 + a.m15 * b.m15;
+	Matrix result = MatrixMultiply(a, b);
 	return result;
 }
 
@@ -38,11 +22,14 @@ class Object {
 	Color color;
 	float rotationAngle;
 	bool isVisible;
+	Vector3 originalPosition;
+	float xOffset;
 public:
 	Object(Model model, Vector3 position, Vector3 rotation, Vector3 scale, Color color, float rotationAngle, Shader shader) {
 		this->model = model;
 		//this->texture = texture;
 		this->position = position;
+		this->originalPosition = position;
 		this->rotation = rotation;
 		this->scale = scale;
 		this->color = color;
@@ -51,6 +38,7 @@ public:
 		//model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
 		this->transform = MatrixRotate(rotation, rotationAngle) * MatrixTranslate(position.x, position.y, position.z);
 		this->isVisible = true;
+		this->xOffset = 0.0f;
 	}
 	~Object() {
 		UnloadModel(model);
@@ -65,41 +53,48 @@ public:
 		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(PI * time / 30 / divider) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
 	}
 	void wahadloUpdate(double time) {
-		const float theta0 = 0.25f; // Maksymalne wychylenie w radianach
-		const float g = 9.81f;     // Przyspieszenie ziemskie w m/s^2
-		const float L = 1.0f;      // Długość wahadła w metrach
+		const float theta0 = 0.25f;
+		const float g = 9.81f;
+		const float L = 1.0f;
 
 		float angle = theta0 * sin(sqrt(g / L) * time);
 		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(angle) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
 	}
 	void changeColor() {
 		static int number = 0;
-		switch (number) {
-		case 0: this->color = LIGHTGRAY; break;
-		case 1: this->color = GRAY; break;
-		case 2: this->color = DARKGRAY; break;
-		case 3: this->color = YELLOW; break;
-		case 4: this->color = GOLD; break;
-		case 5: this->color = ORANGE; break;
-		case 6: this->color = PINK; break;
-		case 7: this->color = RED; break;
-		case 8: this->color = MAROON; break;
-		case 9: this->color = GREEN; break;
-		case 10: this->color = LIME; break;
-		case 11: this->color = DARKGREEN; break;
-		case 12: this->color = SKYBLUE; break;
-		case 13: this->color = BLUE; break;
-		case 14: this->color = DARKBLUE; break;
-		case 15: this->color = PURPLE; break;
-		case 16: this->color = VIOLET; break;
-		case 17: this->color = DARKPURPLE; break;
-		case 18: this->color = BEIGE; break;
-		case 19: this->color = BROWN; break;
-		case 20: this->color = DARKBROWN; break;
-		case 21: this->color = WHITE; number = -1; break;
-		}
-		++number;
+		static const Color colors[] = {
+			LIGHTGRAY, GRAY, DARKGRAY, YELLOW, GOLD, ORANGE, PINK, RED, MAROON, GREEN,
+			LIME, DARKGREEN, SKYBLUE, BLUE, DARKBLUE, PURPLE, VIOLET, DARKPURPLE,
+			BEIGE, BROWN, DARKBROWN, WHITE
+		};
+		color = colors[number];
+		number = (number + 1) % (sizeof(colors) / sizeof(colors[0]));
 	}
+	float spread(int index) {
+		float speed = 2.0f;
+		xOffset += GetFrameTime() * speed;
+		if (xOffset >= 0.5f) {
+			xOffset = 0.5f;
+		}
+		position.x = originalPosition.x + xOffset * (index + 1);
+		
+		transform = MatrixRotate(rotation, rotationAngle) * MatrixTranslate(position.x, position.y, position.z);
+
+		return position.x;
+	}
+
+	float resetPosition(int index) {
+		float speed = 2.0f;
+		xOffset -= GetFrameTime() * speed;
+		if (xOffset <= 0.0f) {
+			xOffset = 0.0f;
+		}
+		position.x = originalPosition.x + xOffset * (index + 1); 
+		transform = MatrixRotate(rotation, rotationAngle) * MatrixTranslate(position.x, position.y, position.z);
+
+		return position.x;
+	}
+
 };
 
 int main(void)
@@ -133,7 +128,7 @@ int main(void)
 	float rotationAngleX = 0.0f;
 	float rotationAngleY = 0.0f;
 	float distanceFromTarget = 10.0f;
-	Vector3 targetPoint = { 0.0f, 3.7f, 0.0f }; // Punkt, wokół którego kamera się obraca
+	Vector3 targetPoint = { 0.0f, 3.7f, 0.0f };
 
 
 	Shader shader = LoadShader(TextFormat("assets/lighting.vs", GLSL_VERSION),
@@ -177,7 +172,7 @@ int main(void)
 	{		
 		Vector2 mouseDelta = GetMouseDelta();
 		rotationAngleX -= mouseDelta.x * 0.003f;
-		if (camera.position.y > 0.2f) rotationAngleY += mouseDelta.y * 0.003f;
+		if (camera.position.y > 0.2f) rotationAngleY += mouseDelta.y * 0.003f; else targetPoint.y += 0.05;
 		if (rotationAngleY > PI / 2) rotationAngleY = PI / 2;
 		if (rotationAngleY < -PI / 2) rotationAngleY = -PI / 2;
 		camera.position.x = targetPoint.x + distanceFromTarget * cos(rotationAngleY) * sin(rotationAngleX);
@@ -196,7 +191,7 @@ int main(void)
 		std::string hoursS = hours < 10 ? '0'+std::to_string(hours) : std::to_string(hours);
 		int minutes = int(fmod(time + localTime, 86400) / 60 - 60 * hours);
 		std::string minutesS = minutes < 10 ? '0' + std::to_string(minutes) : std::to_string(minutes);
-		int seconds = int(time + localTime - (hours * 3600) - (minutes * 60));
+		int seconds = int(fmod(time + localTime, 86400) - (hours * 3600) - (minutes * 60));
 		std::string secondsS = seconds < 10 ? '0' + std::to_string(seconds) : std::to_string(seconds);
 
 		std::string napis1 = "Czas cyfrowy: " + hoursS + ":" + minutesS + ":" + secondsS;
@@ -237,7 +232,10 @@ int main(void)
 			multiplier -= 50.0f;
 			std::cout << multiplier << std::endl;
 		}
-		if (IsKeyPressed(KEY_K)) { multiplier -= 1.0f; }
+		if(IsKeyPressed(KEY_L)) {
+			multiplier = 1.0f;
+			std::cout << multiplier << std::endl;
+		}
 		if (IsKeyPressed(KEY_O)) { zegar.changeColor(); }
 		if (IsKeyPressed(KEY_P)) { podloga.changeColor(); }
 		if (IsKeyPressed(KEY_C)) {
@@ -257,11 +255,18 @@ int main(void)
 		}
 		if (IsKeyPressed(KEY_EQUAL)) { if (widoczneZebatki < 11) ++widoczneZebatki; }
 		if (IsKeyPressed(KEY_MINUS)) { if (widoczneZebatki > 0) --widoczneZebatki; }
+		if(IsKeyDown(KEY_M)) {
+			for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].spread(i)/2;
+			
+		}
+		if (IsKeyDown(KEY_N)) {
+			for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].resetPosition(i)/2;
+		}
+
 		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
 
 		BeginDrawing();
 		ClearBackground(SKYBLUE);
-
 		BeginMode3D(camera);
 
 		zegar.drawM();
@@ -273,7 +278,6 @@ int main(void)
 		kaczka.drawM();
 		for (int i = 0; i < widoczneZebatki; ++i) zebatka[11 - i].draw();
 
-		// Draw spheres to show where the lights are
 		for (int i = 0; i < MAX_LIGHTS; i++)
 		{
 			if (lights[i].enabled) DrawSphereEx(lights[i].position, 0.2f, 8, 8, lights[i].color);
