@@ -70,11 +70,11 @@ public:
 		color = colors[number];
 		number = (number + 1) % (sizeof(colors) / sizeof(colors[0]));
 	}
-	float spread(int index) {
+	float spread(int index, float offset) {
 		float speed = 2.0f;
 		xOffset += GetFrameTime() * speed;
-		if (xOffset >= 0.5f) {
-			xOffset = 0.5f;
+		if (xOffset >= offset) {
+			xOffset = offset;
 		}
 		position.x = originalPosition.x + xOffset * (index + 1);
 		
@@ -111,6 +111,7 @@ int main(void)
 	InitAudioDevice();
 
 	Sound tick = LoadSound("assets/clock.wav");
+	Sound quack = LoadSound("assets/quack.wav");
 	float tickTime = 0;
 	float time = 0;
 	double multiplier = 1;
@@ -215,6 +216,12 @@ int main(void)
 		zebatka[10].update(time + localTime, -1080);
 		zebatka[11].update(time + localTime, 43200);
 		wahadlo.wahadloUpdate(time + localTime);
+		if(minutes==59&&seconds>55) multiplier = 1.0f;
+		if (minutes == 59 && seconds == 59) { 
+			kaczka.spread(0, -0.5f); 
+			PlaySound(quack);
+		}
+		if(minutes==0&&seconds==2) kaczka.resetPosition(0);
 
 		if (GetMouseWheelMove() > 0) distanceFromTarget -= 0.5f;
 		if (GetMouseWheelMove() < 0) distanceFromTarget += 0.5f;
@@ -256,7 +263,7 @@ int main(void)
 		if (IsKeyPressed(KEY_EQUAL)) { if (widoczneZebatki < 11) ++widoczneZebatki; }
 		if (IsKeyPressed(KEY_MINUS)) { if (widoczneZebatki > 0) --widoczneZebatki; }
 		if(IsKeyDown(KEY_M)) {
-			for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].spread(i)/2;
+			for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].spread(i, 0.5f)/2;
 			
 		}
 		if (IsKeyDown(KEY_N)) {
@@ -292,6 +299,7 @@ int main(void)
 	}
 
 	UnloadSound(tick);
+	UnloadSound(quack);
 	UnloadShader(shader);
 	CloseAudioDevice();
 	CloseWindow();
