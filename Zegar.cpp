@@ -46,7 +46,7 @@ public:
 		this->scale = scale;
 		this->color = color;
 		this->rotationAngle = rotationAngle;
-		model.materials[0].shader = shader;
+		this->model.materials[0].shader = shader;
 		//model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
 		this->transform = MatrixRotate(rotation, rotationAngle) * MatrixTranslate(position.x, position.y, position.z);
 	}
@@ -56,8 +56,23 @@ public:
 	void drawM() {
 		DrawModelEx(model, position, rotation, rotationAngle, scale, color);
 	}
-	void update(double time, float localTime, float divider) {
-		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(PI * localTime / 30 / divider) * MatrixRotateX(PI * time / 30 / divider) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
+	void update(double time, float divider) {
+		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(PI * time / 30 / divider) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
+	}
+	void wahadloUpdate(double time) {
+		float theta0 = 0.25f; // Maksymalne wychylenie w radianach
+		float g = 9.81f;     // Przyspieszenie ziemskie w m/s^2
+		float L = 1.0f;      // Długość wahadła w metrach
+
+		float angle = theta0 * sin(sqrt(g / L) * time);
+		float cosAngle = cos(angle);
+		float sinAngle = sin(angle);
+
+		this->transform.m0 = 1;         this->transform.m4 = 0;         this->transform.m8 = 0;         this->transform.m12 = 0;
+		this->transform.m1 = 0;         this->transform.m5 = cosAngle;  this->transform.m9 = -sinAngle; this->transform.m13 = 0;
+		this->transform.m2 = 0;         this->transform.m6 = sinAngle;  this->transform.m10 = cosAngle; this->transform.m14 = 0;
+		this->transform.m3 = 0;         this->transform.m7 = 0;         this->transform.m11 = 0;        this->transform.m15 = 1;
+		this->transform = MatrixRotate(this->rotation, this->rotationAngle)*this->transform * MatrixTranslate(this->position.x, this->position.y, this->position.z);
 	}
 	void changeColor() {
 		static int number = 0;
@@ -118,7 +133,7 @@ int main(void)
 		TextFormat("assets/lighting.fs", GLSL_VERSION));
 
 	Object zegar = Object(LoadModel("assets/zegar.obj"), { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -90, shader);
-	Object wahadlo = Object(LoadModel("assets/wahadlo.obj"), { 0.0f, 2.97f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
+	Object wahadlo = Object(LoadModel("assets/wahadlo.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
 	Object wskazSek = Object(LoadModel("assets/wskazSek.obj"), { -0.22f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
 	Object wskazMin = Object(LoadModel("assets/wskazMin.obj"), { -0.2f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
 	Object wskazGodzin = Object(LoadModel("assets/wskazGodzin.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI/2, shader);
@@ -163,12 +178,12 @@ int main(void)
 		UpdateCamera(&camera, CAMERA_THIRD_PERSON);
 		float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
 		SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
-		wskazSek.update(int(time), localTime, 1);
-		wskazMin.update(time, localTime, 60);
-		wskazGodzin.update(time, localTime, 720);
+		wskazSek.update(int(time) + localTime, 1);
+		wskazMin.update(time + localTime, 60);
+		wskazGodzin.update(time + localTime, 720);
 
-		for (int i = 0; i < sizeof(zebatka) / sizeof(Object); ++i) zebatka[i].update(time, localTime, 1);
-		wahadlo.update(time, localTime, 0.1);
+		for (int i = 0; i < sizeof(zebatka) / sizeof(Object); ++i) zebatka[i].update(time + localTime, 1);
+		wahadlo.wahadloUpdate(time + localTime);
 
 		double lastMultiplier = multiplier;
 		if (IsKeyPressed(KEY_Y)) { lights[0].enabled = !lights[0].enabled; }
