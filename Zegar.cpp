@@ -121,6 +121,10 @@ int main(void)
 	int minutes;
 	int seconds;
 
+	int hoursM;
+	int minutesM;
+	int secondsM;
+
 	Camera camera = { 0 };
 	camera.position = { -10.0f, 10.0f, 10.0f };
 	camera.target = { 0.0f, 3.7f, 0.0f };
@@ -205,7 +209,28 @@ int main(void)
 			minutes = int(fmod(time + localTime, 86400) / 60 - 60 * hours);
 			seconds = int(fmod(time + localTime, 86400) - (hours * 3600) - (minutes * 60));
 		}
-		
+		else if (ustawiona)
+		{
+			hours = int(fmod(time, 86400)) / 3600 + hoursM;
+			if (hours == 24)
+			{
+				hoursM = hoursM - 24;
+			}
+			minutes = int(fmod(time, 86400) / 60) + minutesM;
+			if (minutes == 60)
+			{
+				hoursM++;
+				minutesM = minutesM - 60;
+			}
+			seconds = int(fmod(time, 86400)) + secondsM;
+			if (seconds == 60)
+			{
+				minutesM++;
+				secondsM = secondsM-60;
+				
+			}
+			
+		}
 
 
 		std::string hoursS = hours < 10 ? '0'+std::to_string(hours) : std::to_string(hours);
@@ -295,20 +320,20 @@ int main(void)
 				hourChange = true;
 				localTimeActive = false;
 			}
-			else if (hourChange || minuteChange || secondChange)
-			{
-				hourChange = false;
-				minuteChange = false;
-				secondChange = false;
-				localTimeActive = true;
-			}
-			
+		}
+
+		if (IsKeyPressed(KEY_X)) {
+			hourChange = false;
+			minuteChange = false;
+			secondChange = false;
+			ustawiona = false;
+			localTimeActive = true;
 		}
 
 		if (IsKeyPressed(KEY_UP)) {
 			if (hourChange)
 			{
-				if (hours < 12)
+				if (hours < 24)
 				{
 					hours = (hours + 1);
 				}
@@ -340,7 +365,7 @@ int main(void)
 				{
 					hours = (hours - 1);
 				}
-				else (hours = 12);
+				else (hours = 24);
 			}
 			else if (minuteChange)
 			{
@@ -409,6 +434,10 @@ int main(void)
 				hourChange = false;
 				minuteChange = false;
 				secondChange = false;
+				secondsM = seconds;
+				minutesM = minutes;
+				hoursM = hours;
+				time = 0;
 			}
 		}
 
