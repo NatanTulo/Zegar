@@ -117,6 +117,10 @@ int main(void)
 	double multiplier = 1;
 	int widoczneZebatki = 11;
 
+	int hours;
+	int minutes;
+	int seconds;
+
 	Camera camera = { 0 };
 	camera.position = { -10.0f, 10.0f, 10.0f };
 	camera.target = { 0.0f, 3.7f, 0.0f };
@@ -130,6 +134,12 @@ int main(void)
 	float rotationAngleY = 0.0f;
 	float distanceFromTarget = 10.0f;
 	Vector3 targetPoint = { 0.0f, 3.7f, 0.0f };
+
+	bool hourChange = false;
+	bool minuteChange = false;
+	bool secondChange = false;
+	bool localTimeActive = true;
+	bool ustawiona = false;
 
 
 	Shader shader = LoadShader(TextFormat("assets/lighting.vs", GLSL_VERSION),
@@ -186,16 +196,22 @@ int main(void)
 			PlaySound(tick);
 		}
 
+
 		time += GetFrameTime() * multiplier;
 
-		int hours = int(fmod(time + localTime, 86400)) / 3600;
-		std::string hoursS = hours < 10 ? '0'+std::to_string(hours) : std::to_string(hours);
-		int minutes = int(fmod(time + localTime, 86400) / 60 - 60 * hours);
-		std::string minutesS = minutes < 10 ? '0' + std::to_string(minutes) : std::to_string(minutes);
-		int seconds = int(fmod(time + localTime, 86400) - (hours * 3600) - (minutes * 60));
-		std::string secondsS = seconds < 10 ? '0' + std::to_string(seconds) : std::to_string(seconds);
+		if (localTimeActive)
+		{
+			hours = int(fmod(time + localTime, 86400)) / 3600;
+			minutes = int(fmod(time + localTime, 86400) / 60 - 60 * hours);
+			seconds = int(fmod(time + localTime, 86400) - (hours * 3600) - (minutes * 60));
+		}
+		
 
-		std::string napis1 = "Czas cyfrowy: " + hoursS + ":" + minutesS + ":" + secondsS;
+
+		std::string hoursS = hours < 10 ? '0'+std::to_string(hours) : std::to_string(hours);
+		std::string minutesS = minutes < 10 ? '0' + std::to_string(minutes) : std::to_string(minutes);
+		std::string secondsS = seconds < 10 ? '0' + std::to_string(seconds) : std::to_string(seconds);
+		std::string napis1 = "Czas: " + hoursS + ":" + minutesS + ":" + secondsS;
 
 		float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
 		SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
@@ -272,6 +288,130 @@ int main(void)
 
 		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
 
+
+		if (IsKeyPressed(KEY_Z)) {
+			if (localTimeActive)
+			{
+				hourChange = true;
+				localTimeActive = false;
+			}
+			else if (hourChange || minuteChange || secondChange)
+			{
+				hourChange = false;
+				minuteChange = false;
+				secondChange = false;
+				localTimeActive = true;
+			}
+			
+		}
+
+		if (IsKeyPressed(KEY_UP)) {
+			if (hourChange)
+			{
+				if (hours < 12)
+				{
+					hours = (hours + 1);
+				}
+				else (hours = 0);
+			}
+			else if (minuteChange)
+			{
+				if (minutes < 60)
+				{
+					minutes = (minutes + 1);
+				}
+				else (minutes = 0);
+			}
+			else if (secondChange)
+			{
+				if (seconds < 60)
+				{
+					seconds = (seconds + 1);
+				}
+				else (seconds = 0);
+			}
+
+		}
+
+		if (IsKeyPressed(KEY_DOWN)) {
+			if (hourChange)
+			{
+				if (hours > 0 )
+				{
+					hours = (hours - 1);
+				}
+				else (hours = 12);
+			}
+			else if (minuteChange)
+			{
+				if (minutes > 0)
+				{
+					minutes = (minutes - 1);
+				}
+				else (minutes = 60);
+			}
+			else if (secondChange)
+			{
+				if (seconds > 0)
+				{
+					seconds = (seconds - 1);
+				}
+				else (seconds = 60);
+			}
+		}
+
+
+		if (IsKeyPressed(KEY_LEFT))
+		{
+			if (hourChange)
+			{
+				secondChange = true;
+				hourChange = false;
+			}
+			else if (secondChange)
+			{
+				minuteChange = true;
+				secondChange = false;
+			}
+			else if (minuteChange)
+			{
+				hourChange = true;
+				minuteChange = false;
+			}
+			
+		}
+		
+		if (IsKeyPressed(KEY_RIGHT))
+		{
+			if (hourChange)
+			{
+				minuteChange = true;
+				hourChange = false;
+			}
+			else if (minuteChange)
+			{
+				secondChange = true;
+				minuteChange = false;
+			}
+			else if (secondChange)
+			{
+				hourChange = true;
+				minuteChange = false;
+			}
+		}
+
+		if (IsKeyPressed(KEY_ENTER))
+		{
+			if(hourChange || minuteChange || secondChange)
+			{
+				ustawiona = true;
+				localTimeActive = false;
+				hourChange = false;
+				minuteChange = false;
+				secondChange = false;
+			}
+		}
+
 		BeginDrawing();
 		ClearBackground(SKYBLUE);
 		BeginMode3D(camera);
@@ -294,7 +434,12 @@ int main(void)
 		EndMode3D();
 
 		DrawFPS(10, 10);
-		DrawText(napis1.c_str(), 10, screenHeight - 20, 20, MAGENTA);
+		if (!hourChange && !minuteChange && !secondChange)
+		{
+			DrawText(napis1.c_str(), 10, screenHeight - 20, 20, MAGENTA);
+		}
+		else DrawText(napis1.c_str(), 10, screenHeight - 20, 20, RED);
+		
 		EndDrawing();
 	}
 
@@ -306,3 +451,4 @@ int main(void)
 
 	return 0;
 }
+
