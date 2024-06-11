@@ -50,14 +50,14 @@ public:
 		DrawModelEx(model, position, rotation, rotationAngle, scale, color);
 	}
 	void update(double time, float divider) {
-		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(PI * time / 30 / divider) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
+		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(PI * float(time) / 30 / divider) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
 	}
 	void wahadloUpdate(double time) {
 		const float theta0 = 0.25f;
 		const float g = 9.81f;
 		const float L = 1.0f;
 
-		float angle = theta0 * sin(sqrt(g / L) * time);
+		float angle = theta0 * float(sin(sqrt(g / L) * time));
 		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(angle) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
 	}
 	void changeColor() {
@@ -104,7 +104,7 @@ int main(void)
 
 	time_t now = time(0);
 	tm* localtm = localtime(&now);
-	float localTime = localtm->tm_hour * 3600 + localtm->tm_min * 60 + localtm->tm_sec;
+	int localTime = localtm->tm_hour * 3600 + localtm->tm_min * 60 + localtm->tm_sec;
 
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	InitWindow(screenWidth, screenHeight, "Zegar");
@@ -114,16 +114,17 @@ int main(void)
 	Sound quack = LoadSound("assets/quack.wav");
 	float tickTime = 0;
 	float time = 0;
-	double multiplier = 1;
+	float multiplier = 1;
 	int widoczneZebatki = 11;
+	bool stopForKaczka = true;
 
 	int hours;
 	int minutes;
 	int seconds;
 
-	int hoursM;
-	int minutesM;
-	int secondsM;
+	int hoursM=0;
+	int minutesM=0;
+	int secondsM=0;
 
 	Camera camera = { 0 };
 	camera.position = { -10.0f, 10.0f, 10.0f };
@@ -257,7 +258,7 @@ int main(void)
 		zebatka[10].update(time + localTime, -1080);
 		zebatka[11].update(time + localTime, 43200);
 		wahadlo.wahadloUpdate(time + localTime);
-		if(minutes==59&&seconds>55) multiplier = 1.0f;
+		if(minutes==59&&seconds>55&&stopForKaczka) multiplier = 1.0f;
 		if (minutes == 59 && seconds == 59) { 
 			kaczka.spread(0, -0.5f); 
 			PlaySound(quack);
@@ -329,11 +330,14 @@ int main(void)
 			ustawiona = false;
 			localTimeActive = true;
 		}
+		if (IsKeyPressed(KEY_K)) {
+			stopForKaczka = !stopForKaczka;
+		}
 
 		if (IsKeyPressed(KEY_UP)) {
 			if (hourChange)
 			{
-				if (hours < 24)
+				if (hours < 23)
 				{
 					hours = (hours + 1);
 				}
@@ -341,7 +345,7 @@ int main(void)
 			}
 			else if (minuteChange)
 			{
-				if (minutes < 60)
+				if (minutes < 59)
 				{
 					minutes = (minutes + 1);
 				}
@@ -349,7 +353,7 @@ int main(void)
 			}
 			else if (secondChange)
 			{
-				if (seconds < 60)
+				if (seconds < 59)
 				{
 					seconds = (seconds + 1);
 				}
@@ -365,7 +369,7 @@ int main(void)
 				{
 					hours = (hours - 1);
 				}
-				else (hours = 24);
+				else (hours = 23);
 			}
 			else if (minuteChange)
 			{
@@ -373,7 +377,7 @@ int main(void)
 				{
 					minutes = (minutes - 1);
 				}
-				else (minutes = 60);
+				else (minutes = 59);
 			}
 			else if (secondChange)
 			{
@@ -381,7 +385,7 @@ int main(void)
 				{
 					seconds = (seconds - 1);
 				}
-				else (seconds = 60);
+				else (seconds = 59);
 			}
 		}
 
@@ -421,7 +425,7 @@ int main(void)
 			else if (secondChange)
 			{
 				hourChange = true;
-				minuteChange = false;
+				secondChange = false;
 			}
 		}
 
@@ -434,10 +438,8 @@ int main(void)
 				hourChange = false;
 				minuteChange = false;
 				secondChange = false;
-				secondsM = seconds;
-				minutesM = minutes;
-				hoursM = hours;
 				time = 0;
+				localTime = hours * 3600 + minutes * 60 + seconds;
 			}
 		}
 
@@ -452,6 +454,7 @@ int main(void)
 		wskazGodzin.draw();
 		podloga.drawM();
 		kaczka.drawM();
+
 		for (int i = 0; i < widoczneZebatki; ++i) zebatka[11 - i].draw();
 
 		for (int i = 0; i < MAX_LIGHTS; i++)
@@ -468,6 +471,9 @@ int main(void)
 			DrawText(napis1.c_str(), 10, screenHeight - 20, 20, MAGENTA);
 		}
 		else DrawText(napis1.c_str(), 10, screenHeight - 20, 20, RED);
+		if(hourChange) DrawText("__",72, screenHeight - 40, 20, WHITE);
+		if (minuteChange) DrawText("__", 100, screenHeight - 40, 20, WHITE);
+		if (secondChange) DrawText("__", 127, screenHeight - 40, 20, WHITE);
 		
 		EndDrawing();
 	}
