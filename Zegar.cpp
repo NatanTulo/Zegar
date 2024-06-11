@@ -119,9 +119,9 @@ int main(void)
 	bool stopForKaczka = true;
 	bool showLegenda = false;
 
-	int hours;
-	int minutes;
-	int seconds;
+	int hours=0;
+	int minutes=0;
+	int seconds=0;
 
 	int hoursM=0;
 	int minutesM=0;
@@ -203,43 +203,7 @@ int main(void)
 			PlaySound(tick);
 		}
 
-
 		time += GetFrameTime() * multiplier;
-
-		if (localTimeActive)
-		{
-			hours = int(fmod(time + localTime, 86400)) / 3600;
-			minutes = int(fmod(time + localTime, 86400) / 60 - 60 * hours);
-			seconds = int(fmod(time + localTime, 86400) - (hours * 3600) - (minutes * 60));
-		}
-		else if (ustawiona)
-		{
-			hours = int(fmod(time, 86400)) / 3600 + hoursM;
-			if (hours == 24)
-			{
-				hoursM = hoursM - 24;
-			}
-			minutes = int(fmod(time, 86400) / 60) + minutesM;
-			if (minutes == 60)
-			{
-				hoursM++;
-				minutesM = minutesM - 60;
-			}
-			seconds = int(fmod(time, 86400)) + secondsM;
-			if (seconds == 60)
-			{
-				minutesM++;
-				secondsM = secondsM-60;
-				
-			}
-			
-		}
-
-
-		std::string hoursS = hours < 10 ? '0'+std::to_string(hours) : std::to_string(hours);
-		std::string minutesS = minutes < 10 ? '0' + std::to_string(minutes) : std::to_string(minutes);
-		std::string secondsS = seconds < 10 ? '0' + std::to_string(seconds) : std::to_string(seconds);
-		std::string napis1 = "Czas: " + hoursS + ":" + minutesS + ":" + secondsS;
 
 		float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
 		SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
@@ -247,7 +211,7 @@ int main(void)
 		wskazMin.update(time + localTime, 60);
 		wskazGodzin.update(time + localTime, 720);
 
-		zebatka[0].update(time + localTime, 1 / 6);
+		zebatka[0].update(time + localTime, 1 / 6.0f);
 		zebatka[1].update(time + localTime, -8);
 		zebatka[2].update(time + localTime, -1);
 		zebatka[3].update(time + localTime, 60);
@@ -309,7 +273,7 @@ int main(void)
 		}
 		if (IsKeyPressed(KEY_EQUAL)) { if (widoczneZebatki < 11) ++widoczneZebatki; }
 		if (IsKeyPressed(KEY_MINUS)) { if (widoczneZebatki > 0) --widoczneZebatki; }
-		if (IsKeyDown(KEY_L)) showLegenda = !showLegenda;
+		if (IsKeyPressed(KEY_L)) showLegenda = !showLegenda;
 		if(IsKeyDown(KEY_M)) for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].spread(i, 0.5f)/2;
 		if (IsKeyDown(KEY_N)) for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].resetPosition(i)/2;
 		if (IsKeyPressed(KEY_Z)) {
@@ -326,6 +290,11 @@ int main(void)
 			secondChange = false;
 			ustawiona = false;
 			localTimeActive = true;
+			now = std::time(0);
+			localtm = localtime(&now);
+			localTime = localtm->tm_hour * 3600 + localtm->tm_min * 60 + localtm->tm_sec;
+			time = 0;
+			tickTime = 0;
 		}
 
 		if (IsKeyPressed(KEY_UP)) {
@@ -433,9 +402,43 @@ int main(void)
 				minuteChange = false;
 				secondChange = false;
 				time = 0;
+				tickTime = 0;
 				localTime = hours * 3600 + minutes * 60 + seconds;
 			}
 		}
+
+		if (localTimeActive)
+		{
+			hours = int(fmod(time + localTime, 86400)) / 3600;
+			minutes = int(fmod(time + localTime, 86400) / 60 - 60 * hours);
+			seconds = int(fmod(time + localTime, 86400) - (hours * 3600) - (minutes * 60));
+		}
+		else if (ustawiona)
+		{
+			hours = int(fmod(time + localTime, 86400)) / 3600; + hoursM;
+			if (hours == 24)
+			{
+				hoursM = hoursM - 24;
+			}
+			minutes = int(fmod(time + localTime, 86400) / 60 - 60 * hours); + minutesM;
+			if (minutes == 60)
+			{
+				hoursM++;
+				minutesM = minutesM - 60;
+			}
+			seconds = int(fmod(time + localTime, 86400) - (hours * 3600) - (minutes * 60)) + secondsM;
+			if (seconds == 60)
+			{
+				minutesM++;
+				secondsM = secondsM - 60;
+
+			}
+		}
+
+		std::string hoursS = hours < 10 ? '0' + std::to_string(hours) : std::to_string(hours);
+		std::string minutesS = minutes < 10 ? '0' + std::to_string(minutes) : std::to_string(minutes);
+		std::string secondsS = seconds < 10 ? '0' + std::to_string(seconds) : std::to_string(seconds);
+		std::string napis1 = "Czas: " + hoursS + ":" + minutesS + ":" + secondsS;
 
 		BeginDrawing();
 		ClearBackground(SKYBLUE);
@@ -469,7 +472,7 @@ int main(void)
 		if (minuteChange) DrawTextEx(arial, "__", { 109, screenHeight - 40 }, 20, 1, WHITE);
 		if (secondChange) DrawTextEx(arial, "__", { 141, screenHeight - 40 }, 20, 1, WHITE);
 		if (showLegenda) DrawTextEx(arial, "W - podwyzszenie centrum uwagi kamery\nS - obnizenie centrum uwagi kamery\nY,R,G,B - wlaczanie/wylaczanie odpowiedniego swiatla\nI - zwieksz mnoznik czasu\nK - zmniejsz mnoznik czasu\nJ - reset mnoznika czasu\nO - zmiana koloru zegara\nP - zmiana koloru podlogi\nC - reset pozycji kamery\nT - aktualizacja czasu do aktualnego systemowego\n= - zwiekszenie liczby widocznych zebatek\n- - zmniejszenie liczby widocznych zebatek\nM - rozlozenie zebatek\nN - zlozenie zebatek\nZ - zmiana trybu ustawiania czasu\nX - powrot do trybu czasu lokalnego\nwybor strzalkami gora/dol, zmiana strzalkami lewo/prawo, zatwierdzenie enterem\nK - zmniejszanie mnoznika czasu do przy pelnej godzinie\nL - legenda", {10, 40}, 20, 5, WHITE);
-
+		if(!showLegenda) DrawTextEx(arial, "L - legenda", { screenWidth - 120, screenHeight - 20 }, 20, 3, WHITE);
 		EndDrawing();
 	}
 
