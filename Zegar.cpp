@@ -117,6 +117,7 @@ int main(void)
 	float multiplier = 1;
 	int widoczneZebatki = 11;
 	bool stopForKaczka = true;
+	bool showLegenda = false;
 
 	int hours;
 	int minutes;
@@ -146,6 +147,7 @@ int main(void)
 	bool localTimeActive = true;
 	bool ustawiona = false;
 
+	Font arial = LoadFontEx("assets/arial.ttf", 32, 0, 250);
 
 	Shader shader = LoadShader(TextFormat("assets/lighting.vs", GLSL_VERSION),
 		TextFormat("assets/lighting.fs", GLSL_VERSION));
@@ -258,6 +260,9 @@ int main(void)
 		zebatka[10].update(time + localTime, -1080);
 		zebatka[11].update(time + localTime, 43200);
 		wahadlo.wahadloUpdate(time + localTime);
+
+		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
+
 		if(minutes==59&&seconds>55&&stopForKaczka) multiplier = 1.0f;
 		if (minutes == 59 && seconds == 59) { 
 			kaczka.spread(0, -0.5f); 
@@ -281,7 +286,7 @@ int main(void)
 			multiplier -= 50.0f;
 			std::cout << multiplier << std::endl;
 		}
-		if(IsKeyPressed(KEY_L)) {
+		if(IsKeyPressed(KEY_J)) {
 			multiplier = 1.0f;
 			std::cout << multiplier << std::endl;
 		}
@@ -304,17 +309,9 @@ int main(void)
 		}
 		if (IsKeyPressed(KEY_EQUAL)) { if (widoczneZebatki < 11) ++widoczneZebatki; }
 		if (IsKeyPressed(KEY_MINUS)) { if (widoczneZebatki > 0) --widoczneZebatki; }
-		if(IsKeyDown(KEY_M)) {
-			for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].spread(i, 0.5f)/2;
-			
-		}
-		if (IsKeyDown(KEY_N)) {
-			for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].resetPosition(i)/2;
-		}
-
-		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
-
-
+		if (IsKeyDown(KEY_L)) showLegenda = !showLegenda;
+		if(IsKeyDown(KEY_M)) for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].spread(i, 0.5f)/2;
+		if (IsKeyDown(KEY_N)) for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].resetPosition(i)/2;
 		if (IsKeyPressed(KEY_Z)) {
 			if (localTimeActive)
 			{
@@ -329,9 +326,6 @@ int main(void)
 			secondChange = false;
 			ustawiona = false;
 			localTimeActive = true;
-		}
-		if (IsKeyPressed(KEY_K)) {
-			stopForKaczka = !stopForKaczka;
 		}
 
 		if (IsKeyPressed(KEY_UP)) {
@@ -468,13 +462,14 @@ int main(void)
 		DrawFPS(10, 10);
 		if (!hourChange && !minuteChange && !secondChange)
 		{
-			DrawText(napis1.c_str(), 10, screenHeight - 20, 20, MAGENTA);
+			DrawTextEx(arial, napis1.c_str(), { 10, screenHeight - 20 }, 20, 3, MAGENTA);
 		}
-		else DrawText(napis1.c_str(), 10, screenHeight - 20, 20, RED);
-		if(hourChange) DrawText("__",72, screenHeight - 40, 20, WHITE);
-		if (minuteChange) DrawText("__", 100, screenHeight - 40, 20, WHITE);
-		if (secondChange) DrawText("__", 127, screenHeight - 40, 20, WHITE);
-		
+		else DrawTextEx(arial, napis1.c_str(), { 10, screenHeight - 20 }, 20, 3, RED);
+		if (hourChange) DrawTextEx(arial, "__", { 77, screenHeight - 40 }, 20, 1, WHITE);
+		if (minuteChange) DrawTextEx(arial, "__", { 109, screenHeight - 40 }, 20, 1, WHITE);
+		if (secondChange) DrawTextEx(arial, "__", { 141, screenHeight - 40 }, 20, 1, WHITE);
+		if (showLegenda) DrawTextEx(arial, "W - podwyzszenie centrum uwagi kamery\nS - obnizenie centrum uwagi kamery\nY,R,G,B - wlaczanie/wylaczanie odpowiedniego swiatla\nI - zwieksz mnoznik czasu\nK - zmniejsz mnoznik czasu\nJ - reset mnoznika czasu\nO - zmiana koloru zegara\nP - zmiana koloru podlogi\nC - reset pozycji kamery\nT - aktualizacja czasu do aktualnego systemowego\n= - zwiekszenie liczby widocznych zebatek\n- - zmniejszenie liczby widocznych zebatek\nM - rozlozenie zebatek\nN - zlozenie zebatek\nZ - zmiana trybu ustawiania czasu\nX - powrot do trybu czasu lokalnego\nwybor strzalkami gora/dol, zmiana strzalkami lewo/prawo, zatwierdzenie enterem\nK - zmniejszanie mnoznika czasu do przy pelnej godzinie\nL - legenda", {10, 40}, 20, 5, WHITE);
+
 		EndDrawing();
 	}
 
