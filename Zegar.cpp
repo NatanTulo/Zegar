@@ -8,13 +8,11 @@
 #define GLSL_VERSION            330
 
 Matrix operator*(const Matrix& a, const Matrix& b) {
-	Matrix result = MatrixMultiply(a, b);
-	return result;
+	return MatrixMultiply(a, b);
 }
 
 class Object {
 	Model model;
-	//Texture2D texture;
 	Matrix transform;
 	Vector3 position;
 	Vector3 rotation;
@@ -27,7 +25,6 @@ class Object {
 public:
 	Object(Model model, Vector3 position, Vector3 rotation, Vector3 scale, Color color, float rotationAngle, Shader shader) {
 		this->model = model;
-		//this->texture = texture;
 		this->position = position;
 		this->originalPosition = position;
 		this->rotation = rotation;
@@ -35,7 +32,6 @@ public:
 		this->color = color;
 		this->rotationAngle = rotationAngle;
 		this->model.materials[0].shader = shader;
-		//model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
 		this->transform = MatrixRotate(rotation, rotationAngle) * MatrixTranslate(position.x, position.y, position.z);
 		this->isVisible = true;
 		this->xOffset = 0.0f;
@@ -49,10 +45,10 @@ public:
 	void drawM() {
 		DrawModelEx(model, position, rotation, rotationAngle, scale, color);
 	}
-	void update(double time, float divider) {
+	void update(double time, float divider) { //aktualizacja obrotu wskazówek zegara
 		this->transform = MatrixRotate(this->rotation, this->rotationAngle) * MatrixRotateX(PI * float(time) / 30 / divider) * MatrixTranslate(this->position.x, this->position.y, this->position.z);
 	}
-	void wahadloUpdate(double time) {
+	void wahadloUpdate(double time) { //aktualizacja ruchu wahadła
 		const float theta0 = 0.25f;
 		const float g = 9.81f;
 		const float L = 1.0f;
@@ -102,16 +98,6 @@ int main(void)
 	const int screenWidth = 1600;
 	const int screenHeight = 900;
 
-	time_t now = time(0);
-	tm* localtm = localtime(&now);
-	int localTime = localtm->tm_hour * 3600 + localtm->tm_min * 60 + localtm->tm_sec;
-
-	SetConfigFlags(FLAG_MSAA_4X_HINT);
-	InitWindow(screenWidth, screenHeight, "Zegar");
-	InitAudioDevice();
-
-	Sound tick = LoadSound("assets/clock.wav");
-	Sound quack = LoadSound("assets/quack.wav");
 	float tickTime = 0;
 	float time = 0;
 	float multiplier = 1;
@@ -119,14 +105,35 @@ int main(void)
 	bool stopForKaczka = true;
 	bool showLegenda = false;
 
-	int hours=0;
-	int minutes=0;
-	int seconds=0;
+	int hours = 0;
+	int minutes = 0;
+	int seconds = 0;
 
-	int hoursM=0;
-	int minutesM=0;
-	int secondsM=0;
+	int hoursM = 0;
+	int minutesM = 0;
+	int secondsM = 0;
 
+	bool hourChange = false;
+	bool minuteChange = false;
+	bool secondChange = false;
+	bool localTimeActive = true;
+	bool ustawiona = false;
+
+	time_t now = std::time(0);
+	tm* localtm = localtime(&now);
+	int localTime = localtm->tm_hour * 3600 + localtm->tm_min * 60 + localtm->tm_sec;
+
+	SetConfigFlags(FLAG_MSAA_4X_HINT);
+	InitWindow(screenWidth, screenHeight, "Zegar");
+	InitAudioDevice();
+
+	//wczytanie dzwieków, fontu oraz shaderu z plików
+	Sound tick = LoadSound("assets/clock.wav");
+	Sound quack = LoadSound("assets/quack.wav");
+	Font arial = LoadFontEx("assets/arial.ttf", 32, 0, 250);
+	Shader shader = LoadShader(TextFormat("assets/lighting.vs", GLSL_VERSION), TextFormat("assets/lighting.fs", GLSL_VERSION));
+	
+	//wstępne ustawienie kamery
 	Camera camera = { 0 };
 	camera.position = { -10.0f, 10.0f, 10.0f };
 	camera.target = { 0.0f, 3.7f, 0.0f };
@@ -135,23 +142,12 @@ int main(void)
 	camera.projection = CAMERA_PERSPECTIVE;
 	CameraMode cameraMode = CAMERA_CUSTOM;
 
-
 	float rotationAngleX = 0.0f;
 	float rotationAngleY = 0.0f;
 	float distanceFromTarget = 10.0f;
 	Vector3 targetPoint = { 0.0f, 3.7f, 0.0f };
 
-	bool hourChange = false;
-	bool minuteChange = false;
-	bool secondChange = false;
-	bool localTimeActive = true;
-	bool ustawiona = false;
-
-	Font arial = LoadFontEx("assets/arial.ttf", 32, 0, 250);
-
-	Shader shader = LoadShader(TextFormat("assets/lighting.vs", GLSL_VERSION),
-		TextFormat("assets/lighting.fs", GLSL_VERSION));
-
+	//wczytanie modeli oraz ustawienie ich początkowych parametrów do obiektów
 	Object zegar = Object(LoadModel("assets/zegar.obj"), { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, SKYBLUE, -90, shader);
 	Object wahadlo = Object(LoadModel("assets/wahadlo.obj"), { 0.0f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
 	Object wskazSek = Object(LoadModel("assets/wskazSek.obj"), { -0.22f, 3.95f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, WHITE, -PI / 2, shader);
@@ -174,9 +170,10 @@ int main(void)
 	};
 	Object kaczka = Object(LoadModel("assets/Duck.glb"), { 0.05f, 4.45f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.002f, 0.002f, 0.002f }, WHITE, 180, shader);
 
+	//ustawienie parametrów świateł
 	int ambientLoc = GetShaderLocation(shader, "ambient");
-	float val_t[]{ 0.1f, 0.1f, 0.1f, 1.0f };
-	SetShaderValue(shader, ambientLoc, val_t, SHADER_UNIFORM_VEC4);
+	float ambientLight[]{ 0.1f, 0.1f, 0.1f, 1.0f };
+	SetShaderValue(shader, ambientLoc, ambientLight, SHADER_UNIFORM_VEC4);
 
 	Light lights[MAX_LIGHTS] = { 0 };
 	lights[0] = CreateLight(LIGHT_POINT, { -4, 1, -4 }, Vector3Zero(), WHITE, shader);
@@ -186,8 +183,12 @@ int main(void)
 	DisableCursor();
 	SetTargetFPS(360);
 
-	while (!WindowShouldClose())
+	while (!WindowShouldClose()) //pętla główna programu
 	{		
+		//aktualizacja czasu wewnętrznego programu
+		time += GetFrameTime() * multiplier;
+
+		//obsługa ruchu kamery
 		Vector2 mouseDelta = GetMouseDelta();
 		rotationAngleX -= mouseDelta.x * 0.003f;
 		if (camera.position.y > 0.2f) rotationAngleY += mouseDelta.y * 0.003f; else targetPoint.y += 0.05;
@@ -198,19 +199,21 @@ int main(void)
 		camera.position.y = targetPoint.y + distanceFromTarget * sin(rotationAngleY);
 		camera.target = targetPoint;
 
+		//odtwarzanie dźwięku tykania zegara co sekundę
 		if (time - tickTime >= 1 / multiplier) {
 			tickTime = time;
 			PlaySound(tick);
 		}
 
-		time += GetFrameTime() * multiplier;
-
+		//aktualizacja shadera i świateł na podstawie pozycji kamery
 		float cameraPos[3] = { camera.position.x, camera.position.y, camera.position.z };
 		SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], cameraPos, SHADER_UNIFORM_VEC3);
+		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
+		
+		//aktualizacja obiektów
 		wskazSek.update(int(time) + localTime, 1);
 		wskazMin.update(time + localTime, 60);
 		wskazGodzin.update(time + localTime, 720);
-
 		zebatka[0].update(time + localTime, 1 / 6.0f);
 		zebatka[1].update(time + localTime, -8);
 		zebatka[2].update(time + localTime, -1);
@@ -225,8 +228,7 @@ int main(void)
 		zebatka[11].update(time + localTime, 43200);
 		wahadlo.wahadloUpdate(time + localTime);
 
-		for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
-
+		//obsługa kaczki
 		if(minutes==59&&seconds>55&&stopForKaczka) multiplier = 1.0f;
 		if (minutes == 59 && seconds == 59) { 
 			kaczka.spread(0, -0.5f); 
@@ -234,6 +236,7 @@ int main(void)
 		}
 		if(minutes==0&&seconds==2) kaczka.resetPosition(0);
 
+		//obsługa inputów użytkownika
 		if (GetMouseWheelMove() > 0) distanceFromTarget -= 0.5f;
 		if (GetMouseWheelMove() < 0) distanceFromTarget += 0.5f;
 		if (IsKeyDown(KEY_W)) targetPoint.y += 0.01f;
@@ -243,11 +246,11 @@ int main(void)
 		if (IsKeyPressed(KEY_G)) { lights[2].enabled = !lights[2].enabled; }
 		if (IsKeyPressed(KEY_B)) { lights[3].enabled = !lights[3].enabled; }
 		if (IsKeyDown(KEY_I)) {
-			multiplier += 50.0f;
+			multiplier += 10.0f;
 			std::cout << multiplier << std::endl;
 		}
 		if (IsKeyDown(KEY_K)) {
-			multiplier -= 50.0f;
+			multiplier -= 10.0f;
 			std::cout << multiplier << std::endl;
 		}
 		if(IsKeyPressed(KEY_J)) {
@@ -276,6 +279,7 @@ int main(void)
 		if (IsKeyPressed(KEY_L)) showLegenda = !showLegenda;
 		if(IsKeyDown(KEY_M)) for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].spread(i, 0.5f)/2;
 		if (IsKeyDown(KEY_N)) for (int i = 0; i < 12; ++i) targetPoint.x = zebatka[widoczneZebatki - i].resetPosition(i)/2;
+		//obsługa ustawiania czasu
 		if (IsKeyPressed(KEY_Z)) {
 			if (localTimeActive)
 			{
@@ -283,7 +287,6 @@ int main(void)
 				localTimeActive = false;
 			}
 		}
-
 		if (IsKeyPressed(KEY_X)) {
 			hourChange = false;
 			minuteChange = false;
@@ -296,7 +299,6 @@ int main(void)
 			time = 0;
 			tickTime = 0;
 		}
-
 		if (IsKeyPressed(KEY_UP)) {
 			if (hourChange)
 			{
@@ -322,9 +324,7 @@ int main(void)
 				}
 				else (seconds = 0);
 			}
-
 		}
-
 		if (IsKeyPressed(KEY_DOWN)) {
 			if (hourChange)
 			{
@@ -351,8 +351,6 @@ int main(void)
 				else (seconds = 59);
 			}
 		}
-
-
 		if (IsKeyPressed(KEY_LEFT))
 		{
 			if (hourChange)
@@ -370,9 +368,7 @@ int main(void)
 				hourChange = true;
 				minuteChange = false;
 			}
-			
 		}
-		
 		if (IsKeyPressed(KEY_RIGHT))
 		{
 			if (hourChange)
@@ -391,7 +387,6 @@ int main(void)
 				secondChange = false;
 			}
 		}
-
 		if (IsKeyPressed(KEY_ENTER))
 		{
 			if(hourChange || minuteChange || secondChange)
@@ -406,7 +401,6 @@ int main(void)
 				localTime = hours * 3600 + minutes * 60 + seconds;
 			}
 		}
-
 		if (localTimeActive)
 		{
 			hours = int(fmod(time + localTime, 86400)) / 3600;
@@ -434,7 +428,7 @@ int main(void)
 
 			}
 		}
-
+		//przygodowanie napisu z aktualnym czasem
 		std::string hoursS = hours < 10 ? '0' + std::to_string(hours) : std::to_string(hours);
 		std::string minutesS = minutes < 10 ? '0' + std::to_string(minutes) : std::to_string(minutes);
 		std::string secondsS = seconds < 10 ? '0' + std::to_string(seconds) : std::to_string(seconds);
@@ -444,6 +438,7 @@ int main(void)
 		ClearBackground(SKYBLUE);
 		BeginMode3D(camera);
 
+		//rysowanie obiektów
 		zegar.drawM();
 		wahadlo.draw();
 		wskazSek.draw();
@@ -451,9 +446,9 @@ int main(void)
 		wskazGodzin.draw();
 		podloga.drawM();
 		kaczka.drawM();
-
 		for (int i = 0; i < widoczneZebatki; ++i) zebatka[11 - i].draw();
 
+		//rysowanie świateł
 		for (int i = 0; i < MAX_LIGHTS; i++)
 		{
 			if (lights[i].enabled) DrawSphereEx(lights[i].position, 0.2f, 8, 8, lights[i].color);
@@ -463,6 +458,7 @@ int main(void)
 		EndMode3D();
 
 		DrawFPS(10, 10);
+		//rysowanie napisów
 		if (!hourChange && !minuteChange && !secondChange)
 		{
 			DrawTextEx(arial, napis1.c_str(), { 10, screenHeight - 20 }, 20, 3, MAGENTA);
@@ -476,6 +472,7 @@ int main(void)
 		EndDrawing();
 	}
 
+	//zwalnianie zasobów
 	UnloadSound(tick);
 	UnloadSound(quack);
 	UnloadShader(shader);
@@ -485,4 +482,3 @@ int main(void)
 
 	return 0;
 }
-
