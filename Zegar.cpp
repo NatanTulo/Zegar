@@ -471,7 +471,7 @@ int main(void)
 		if (hourChange) DrawTextEx(arial, "__", { 77, screenHeight - 40 }, 20, 1, WHITE);
 		if (minuteChange) DrawTextEx(arial, "__", { 109, screenHeight - 40 }, 20, 1, WHITE);
 		if (secondChange) DrawTextEx(arial, "__", { 141, screenHeight - 40 }, 20, 1, WHITE);
-		if (showLegenda) DrawTextEx(arial, "W - podwyzszenie centrum uwagi kamery\nS - obnizenie centrum uwagi kamery\nY,R,G,B - wlaczanie/wylaczanie odpowiedniego swiatla\nI - zwieksz mnoznik czasu\nK - zmniejsz mnoznik czasu\nJ - reset mnoznika czasu\nO - zmiana koloru zegara\nP - zmiana koloru podlogi\nC - reset pozycji kamery\nT - aktualizacja czasu do aktualnego systemowego\n= - zwiekszenie liczby widocznych zebatek\n- - zmniejszenie liczby widocznych zebatek\nM - rozlozenie zebatek\nN - zlozenie zebatek\nZ - zmiana trybu ustawiania czasu\nX - powrot do trybu czasu lokalnego\nwybor strzalkami gora/dol, zmiana strzalkami lewo/prawo, zatwierdzenie enterem\nK - zmniejszanie mnoznika czasu do przy pelnej godzinie\nL - legenda", {10, 40}, 20, 5, WHITE);
+		if (showLegenda) DrawTextEx(arial, "W - podwyzszenie centrum uwagi kamery\nS - obnizenie centrum uwagi kamery\nY,R,G,B - wlaczanie/wylaczanie odpowiedniego swiatla\nI - zwieksz mnoznik czasu\nK - zmniejsz mnoznik czasu\nJ - reset mnoznika czasu\nO - zmiana koloru zegara\nP - zmiana koloru podlogi\nC - reset pozycji kamery\nT - aktualizacja czasu do aktualnego systemowego\n= - zwiekszenie liczby widocznych zebatek\n- - zmniejszenie liczby widocznych zebatek\nM - rozlozenie zebatek\nN - zlozenie zebatek\nZ - zmiana trybu ustawiania czasu\nX - powrot do trybu czasu lokalnego\nwybor strzalkami gora/dol, zmiana strzalkami lewo/prawo, zatwierdzenie enterem\nK - zmniejszanie mnoznika czasu do 1 przy pelnej godzinie\nL - legenda", {10, 40}, 20, 5, WHITE);
 		if(!showLegenda) DrawTextEx(arial, "L - legenda", { screenWidth - 120, screenHeight - 20 }, 20, 3, WHITE);
 		EndDrawing();
 	}
@@ -479,6 +479,7 @@ int main(void)
 	UnloadSound(tick);
 	UnloadSound(quack);
 	UnloadShader(shader);
+	UnloadFont(arial);
 	CloseAudioDevice();
 	CloseWindow();
 
