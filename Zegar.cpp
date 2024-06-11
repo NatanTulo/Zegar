@@ -282,6 +282,12 @@ int main(void)
 				hourChange = true;
 				localTimeActive = false;
 			}
+			else if (ustawiona)
+			{
+				hourChange = true;
+				localTimeActive = false;
+				ustawiona = false;
+			}
 		}
 
 		if (IsKeyPressed(KEY_X)) {
